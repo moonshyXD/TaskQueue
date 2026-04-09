@@ -84,6 +84,7 @@ class ActionOrchestrator:
         else:
             value = CLI.get_status_value()
             tasks = self.service.filter_tasks_by_status(value)
+
         CLI.print_tasks(tasks=tasks)
 
     def _handle_show_ready(self) -> None:

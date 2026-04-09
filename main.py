@@ -5,40 +5,76 @@ from src.domain.errors import ContractViolationError, InputValidationError
 from src.repository.queue import TaskQueueInMemory
 
 
-def run() -> None:
-    """Запуск интерактивного обработчика задач"""
-    logging.info("Начало работы программы")
-    CLI.greet()
+class TaskSchedulerRunner:
+    def __init__(self) -> None:
+        """
+        Инициализация очереди задач и оркестратора.
+        """
+        self.queue = TaskQueueInMemory()
+        self.orchestrator = ActionOrchestrator(repository=self.queue)
 
-    queue = TaskQueueInMemory()
-    orchestrator = ActionOrchestrator(repository=queue)
+    def handle_action(self, action: str) -> None:
+        """
+        Обработка выбранного действия.
+        :param action: Выбранное пользователем действие
+        """
+        logging.info(f"Пользователь выбрал событие: {action}")
+        logging.info(f"Начало выполнения события: {action}")
 
-    while (action := CLI.action_select()) != CLI.EXIT:
-        try:
-            logging.info(f"Пользователь выбрал событие: {action}")
-            logging.info(f"Начало выполнения события: {action}")
+        self.orchestrator.handle(action)
 
-            orchestrator.handle(action)
+        logging.info(f"Успешно выполнено событие: {action}")
 
-            logging.info(f"Успешно выполнено событие: {action}")
+    @classmethod
+    def handle_input_validation_error(cls, exception: InputValidationError) -> None:
+        """
+        Обработка ошибок валидации ввода.
+        :param exception: Ошибка валидации
+        """
+        logging.error(f"Ошибка ввода: {exception}")
+        print(f"Ошибка ввода: \n{exception}")
 
-        except InputValidationError as e:
-            logging.error(f"Ошибка ввода: {e}")
-            print(f"Ошибка ввода: \n{e}")
+    @classmethod
+    def handle_contract_violation_error(
+        cls, exception: ContractViolationError
+    ) -> None:
+        """
+        Обработка ошибок контракта.
+        :param exception: Ошибка контракта
+        """
+        logging.error(f"Ошибка системы: {exception}")
+        print(f"Ошибка системы: \n{exception}")
 
-        except ContractViolationError as e:
-            logging.error(f"Ошибка системы: {e}")
-            print(f"Ошибка системы: \n{e}")
+    @classmethod
+    def handle_another_error(cls, exception: Exception) -> None:
+        """
+        Обработка непредвиденных ошибок.
+        :param exception: Непредвиденная ошибка
+        """
+        logging.error(
+            f"Произошла непредвиденная ошибка: {exception}", exc_info=True
+        )
+        print(f"Произошла непредвиденная ошибка: \n{exception}")
 
-        except Exception as e:
-            logging.error(
-                f"Произошла непредвиденная ошибка: {e}", exc_info=True
-            )
-            print(f"Произошла непредвиденная ошибка: \n{e}")
+    def run(self) -> None:
+        """
+        Запуск интерактивного обработчика задач.
+        """
+        logging.info("Начало работы программы")
+        CLI.greet()
+        while (action := CLI.action_select()) != CLI.EXIT:
+            try:
+                self.handle_action(action)
+            except InputValidationError as e:
+                self.handle_input_validation_error(e)
+            except ContractViolationError as e:
+                self.handle_contract_violation_error(e)
+            except Exception as e:
+                self.handle_another_error(e)
 
-    logging.info("Окончание работы программы")
-    CLI.goodbye()
+        logging.info("Окончание работы программы")
+        CLI.goodbye()
 
 
 if __name__ == "__main__":
-    run()
+    TaskSchedulerRunner().run()
