@@ -1,0 +1,28 @@
+[dependency-groups]
+dev = [
+    "mypy>=1.19.1",
+    "pre-commit>=4.5.1",
+    "pytest>=9.0.2",
+    "pytest-cov>=7.0.0",
+    "questionary>=2.1.1",
+    "ruff>=0.15.4",
+]
+
+[tool.ruff]
+line-length = 79
+target-version = 'py312'
+
+[tool.ruff.lint]
+fixable = ['ALL']
+select = ['E', 'F', 'I', 'B', 'Q']
+ignore = ['E101']
+
+[tool.ruff.format]
+quote-style = "double"
+docstring-code-format = true
+
+[tool.mypy]
+python_version = '3.12'
+disallow_untyped_defs = true
+ignore_missing_imports = true
+strict_optional = true
