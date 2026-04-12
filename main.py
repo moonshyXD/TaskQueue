@@ -1,21 +1,21 @@
 from src.adapters.cli import CLI
 from src.adapters.logger import logging
 from src.adapters.orchestrator import ActionOrchestrator
-from src.domain.errors import ContractViolationError, InputValidationError
+from src.domain.errors import InputValidationError, TaskHandlerError
 from src.repository.queue import TaskQueueInMemory
 
 
 class TaskSchedulerRunner:
     def __init__(self) -> None:
         """
-        Инициализация очереди задач и оркестратора.
+        Инициализация очереди задач и оркестратора
         """
         self.queue = TaskQueueInMemory()
         self.orchestrator = ActionOrchestrator(repository=self.queue)
 
     def handle_action(self, action: str) -> None:
         """
-        Обработка выбранного действия.
+        Обработка выбранного действия
         :param action: Выбранное пользователем действие
         """
         logging.info(f"Пользователь выбрал событие: {action}")
@@ -26,21 +26,23 @@ class TaskSchedulerRunner:
         logging.info(f"Успешно выполнено событие: {action}")
 
     @classmethod
-    def handle_input_validation_error(cls, exception: InputValidationError) -> None:
+    def handle_input_validation_error(
+        cls, exception: InputValidationError
+    ) -> None:
         """
-        Обработка ошибок валидации ввода.
+        Обработка ошибок валидации ввода
         :param exception: Ошибка валидации
         """
         logging.error(f"Ошибка ввода: {exception}")
         print(f"Ошибка ввода: \n{exception}")
 
     @classmethod
-    def handle_contract_violation_error(
-        cls, exception: ContractViolationError
+    def handle_task_handler_error(
+        cls, exception: TaskHandlerError
     ) -> None:
         """
-        Обработка ошибок контракта.
-        :param exception: Ошибка контракта
+        Обработка системных ошибок обработки задач
+        :param exception: Системная ошибка
         """
         logging.error(f"Ошибка системы: {exception}")
         print(f"Ошибка системы: \n{exception}")
@@ -48,7 +50,7 @@ class TaskSchedulerRunner:
     @classmethod
     def handle_another_error(cls, exception: Exception) -> None:
         """
-        Обработка непредвиденных ошибок.
+        Обработка непредвиденных ошибок
         :param exception: Непредвиденная ошибка
         """
         logging.error(
@@ -58,7 +60,7 @@ class TaskSchedulerRunner:
 
     def run(self) -> None:
         """
-        Запуск интерактивного обработчика задач.
+        Запуск интерактивного обработчика задач
         """
         logging.info("Начало работы программы")
         CLI.greet()
@@ -67,13 +69,14 @@ class TaskSchedulerRunner:
                 self.handle_action(action)
             except InputValidationError as e:
                 self.handle_input_validation_error(e)
-            except ContractViolationError as e:
-                self.handle_contract_violation_error(e)
+            except TaskHandlerError as e:
+                self.handle_task_handler_error(e)
             except Exception as e:
                 self.handle_another_error(e)
 
         logging.info("Окончание работы программы")
         CLI.goodbye()
+
 
 
 if __name__ == "__main__":

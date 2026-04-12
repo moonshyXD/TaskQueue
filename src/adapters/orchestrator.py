@@ -1,4 +1,4 @@
-from typing import Callable, Dict
+from typing import Callable
 
 from src.adapters.cli import CLI
 from src.repository.task_api import TaskAPI
@@ -18,7 +18,7 @@ class ActionOrchestrator:
         self.repository = repository
         self.service = QueueService(repository)
         self.importer = ImportTasks(repository)
-        self._handlers: Dict[str, Callable[[], None]] = {
+        self._handlers: dict[str, Callable[[], None]] = {
             CLI.TASKS_FROM_FILE: self._handle_import_file,
             CLI.TASKS_RANDOM: self._handle_import_random,
             CLI.TASKS_API: self._handle_import_api,

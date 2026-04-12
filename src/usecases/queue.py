@@ -1,6 +1,6 @@
 from typing import Iterator
 
-from src.domain.errors import TaskNotFoundError
+from src.domain.errors import TaskCreationError, TaskNotFoundError
 from src.domain.task import Task
 from src.usecases.interfaces import TaskQueue
 
@@ -17,12 +17,14 @@ class QueueService:
         """
         Добавить задачу в очередь
         :param task: Объект задачи
-        :raises ValueError: Если не удалось добавить задачу
+        :raises TaskCreationError: Если не удалось добавить задачу
         :return: Добавленная задача
         """
         request = self.repository.add_task(task)
         if request is None:
-            raise ValueError("Не получилось добавить задачу")
+            raise TaskCreationError(
+                reason="Не удалось сохранить задачу в репозитории"
+            )
 
         return request
 
@@ -99,6 +101,6 @@ class QueueService:
     def get_highest_priority_task(self) -> Task | None:
         """
         Получить задачу с наивысшим приоритетом
-        :return: Объект задачи или None, если очередь пуста
+        :return: Объект задачи или None
         """
         return self.repository.get_highest_priority_task()

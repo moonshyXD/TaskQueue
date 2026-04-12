@@ -1,5 +1,7 @@
 import random
+from typing import Iterator
 
+from src.domain.status import TaskStatus
 from src.domain.task import Task
 
 
@@ -17,7 +19,7 @@ class TaskRandom:
         "Приготовить пиццу",
     ]
     PRIORITIIES = [1, 2, 3, 4, 5]
-    STATUSES = [0, 1]
+    STATUSES = list(TaskStatus)
 
     def __init__(self, tasks_count: int):
         """
@@ -26,22 +28,17 @@ class TaskRandom:
         """
         self.tasks_count = tasks_count
 
-    def get_tasks(self) -> list[Task]:
+    def get_tasks(self) -> Iterator[Task]:
         """
         Сгенерировать случайные задачи
-        :return: Список сгенерированных случайных задач
+        :yield: Сгенерированная случайная задача
         """
-        tasks = []
-        tasks_count = self.tasks_count
-        for _ in range(tasks_count):
+        for _ in range(self.tasks_count):
             description = random.choice(self.DESCRIPTIONS)
             priority = random.choice(self.PRIORITIIES)
             status = random.choice(self.STATUSES)
-            task = Task(
+            yield Task(
                 description=description,
                 priority=priority,
                 status=status,
             )
-            tasks.append(task)
-
-        return tasks

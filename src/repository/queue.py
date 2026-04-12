@@ -4,10 +4,6 @@ from src.domain.task import Task
 
 
 class TaskQueueInMemory:
-    """
-    Реализация очереди задач в оперативной памяти (In-Memory).
-    """
-
     def __init__(self) -> None:
         """
         Инициализировать очередь задач
@@ -26,7 +22,7 @@ class TaskQueueInMemory:
     @property
     def total_priority(self) -> int:
         """
-        Вычислить суммарный приоритет всех задач (ленивое вычисление)
+        Вычислить суммарный приоритет всех задач
         :return: Сумма приоритетов
         """
         return sum(task.priority for task in self)
@@ -34,7 +30,7 @@ class TaskQueueInMemory:
     @property
     def ready_tasks_count(self) -> int:
         """
-        Вычислить количество задач, готовых к выполнению (ленивое вычисление)
+        Вычислить количество задач, готовых к выполнению
         :return: Количество готовых задач
         """
         return sum(1 for task in self if task.is_ready_for_execution)
@@ -55,11 +51,12 @@ class TaskQueueInMemory:
         """
         if not self._tasks:
             return None
+
         return max(self, key=lambda t: t.priority)
 
     def filter_by_status(self, status: int) -> Iterator[Task]:
         """
-        Ленивый фильтр задач по статусу
+        Фильтр задач по статусу
         :param status: Код статуса
         :yield: Задача с указанным статусом
         """
@@ -69,7 +66,7 @@ class TaskQueueInMemory:
 
     def filter_by_priority(self, priority: int) -> Iterator[Task]:
         """
-        Ленивый фильтр задач по приоритету
+        Фильтр задач по приоритету
         :param priority: Значение приоритета
         :yield: Задача с указанным приоритетом
         """
@@ -79,7 +76,7 @@ class TaskQueueInMemory:
 
     def filter_by_id(self, task_id: int) -> Iterator[Task]:
         """
-        Найти задачу по ID (возвращает итератор для единообразия)
+        Найти задачу по ID
         :param task_id: ID задачи
         :yield: Найденная задача
         """
@@ -90,22 +87,21 @@ class TaskQueueInMemory:
 
     def __iter__(self) -> Iterator[Task]:
         """
-        Реализация протокола итерации. Позволяет использовать очередь
-        в for, list(), sum().
+        Реализация протокола итерации
         :return: Итератор по задачам
         """
         return iter(self._tasks)
 
     def __len__(self) -> int:
         """
-        Поддержка функции len()
+        Поддержка функции len
         :return: Количество задач
         """
         return self.total_tasks
 
     def add_task(self, task: Task) -> Task | None:
         """
-        Добавить задачу в очередь и присвоить ID, если его нет
+        Добавить задачу в очередь и присвоить ID
         :param task: Объект задачи
         :return: Добавленная задача
         """
@@ -125,6 +121,7 @@ class TaskQueueInMemory:
         for index, task in enumerate(self._tasks):
             if task.id == task_id:
                 return self._tasks.pop(index)
+
         return None
 
     def get_task_by_id(self, task_id: int) -> Task | None:
@@ -136,6 +133,7 @@ class TaskQueueInMemory:
         for task in self:
             if task.id == task_id:
                 return task
+
         return None
 
     def update_task_by_id(self, task_id: int, new_task: Task) -> Task | None:
@@ -151,4 +149,5 @@ class TaskQueueInMemory:
             task_to_update.priority = new_task.priority
             task_to_update.status = new_task.status
             return task_to_update
+
         return None

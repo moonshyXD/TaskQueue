@@ -3,6 +3,7 @@ from typing import Iterable
 import questionary
 
 from src.domain.descriptors import FilePathValidator, TaskCountValidator
+from src.domain.status import TaskStatus
 from src.domain.task import Task
 
 
@@ -30,9 +31,11 @@ class CLI:
 
     ACTION_ASK = "Выберите режим приёмки задач"
     TASKS_COUNT_ASK = "Какое количество заданий вы хотите сгенерировать?"
-    FILE_PATH_ASK = "Укажите путь к файлу (относительно папки TaskHandler)?"
+    FILE_PATH_ASK = "Укажите путь к файлу относительно папки TaskHandler"
     FILTER_ASK = "Выберите критерий фильтрации"
     TASK_ID_ASK = "Введите ID задачи"
+    STATUS_ASK = "Выберите статус для фильтрации"
+    PRIORITY_ASK = "Выберите приоритет для фильтрации"
 
     BY_PRIORITY = "По приоритету"
     BY_STATUS = "По статусу"
@@ -106,12 +109,13 @@ class CLI:
         Запросить статус для фильтрации
         :return: Выбранный статус
         """
-        status_map = {"В ожидании": 0, "В работе": 1}
+        status_map = TaskStatus.to_dict()
+        display_map = {v: k for k, v in status_map.items()}
         choice = questionary.select(
-            "Выберите статус для фильтрации",
-            choices=list(status_map.keys()),
+            CLI.STATUS_ASK,
+            choices=list(display_map.keys()),
         ).ask()
-        return status_map[choice]
+        return display_map[choice]
 
     @staticmethod
     def get_priority_value() -> int:
@@ -120,7 +124,7 @@ class CLI:
         :return: Выбранный приоритет
         """
         choice = questionary.select(
-            "Выберите приоритет для фильтрации",
+            CLI.PRIORITY_ASK,
             choices=["1", "2", "3", "4", "5"],
         ).ask()
         return int(choice)

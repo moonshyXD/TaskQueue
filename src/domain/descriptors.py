@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import Any
 
 from src.domain.errors import InputValidationError
+from src.domain.status import TaskStatus
 
 
 class TaskCountValidator:
@@ -185,5 +186,5 @@ class StatusInfoDescriptor:
         if instance is None:
             return self
 
-        status_map = {0: "В ожидании", 1: "В работе"}
+        status_map = TaskStatus.to_dict()
         return status_map.get(instance.status, "Неизвестно")

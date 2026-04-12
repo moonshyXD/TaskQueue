@@ -5,6 +5,8 @@ from src.domain.descriptors import (
     PriorityValidator,
     StatusInfoDescriptor,
 )
+from src.domain.errors import InvalidStatusError
+from src.domain.status import TaskStatus
 
 
 class Task:
@@ -16,7 +18,7 @@ class Task:
         self,
         description: str,
         priority: int,
-        status: int,
+        status: TaskStatus | int,
         task_id: int | None = None,
     ) -> None:
         """
@@ -49,7 +51,7 @@ class Task:
         self._id = value
 
     @property
-    def status(self) -> int:
+    def status(self) -> TaskStatus:
         """
         Получить статус задачи
         :return: Статус задачи
@@ -57,15 +59,16 @@ class Task:
         return self._status
 
     @status.setter
-    def status(self, value: int) -> None:
+    def status(self, value: TaskStatus | int) -> None:
         """
         Установить статус задачи
         :param value: Новое значение статуса
-        :raise ValueError: Если статус не 0 и не 1
+        :raise InvalidStatusError: Если статус некорректен
         """
-        if value not in (0, 1):
-            raise ValueError("Статус должен быть 0 или 1")
-        self._status = value
+        try:
+            self._status = TaskStatus(value)
+        except ValueError:
+            raise InvalidStatusError(value=value) from None
 
     @property
     def created_at(self) -> datetime.datetime:
@@ -89,7 +92,7 @@ class Task:
         Проверить готовность задачи к выполнению
         :return: Истина, если задача готова
         """
-        return self.status == 0 and self.priority >= 3
+        return self.status == TaskStatus.WAITING and self.priority >= 3
 
     @property
     def short_description(self) -> str:
@@ -102,8 +105,8 @@ class Task:
 
     def __add__(self, other: "Task | int") -> int:
         """
-        Поддержка функции sum() для приоритетов задач.
-        :param other: Другая задача или число (начальное значение sum)
+        Поддержка функции sum для приоритетов задач
+        :param other: Другая задача или число
         :return: Сумма приоритетов
         """
         if isinstance(other, Task):

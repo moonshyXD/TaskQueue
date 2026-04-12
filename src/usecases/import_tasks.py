@@ -1,5 +1,3 @@
-from typing import Any
-
 from src.domain.errors import ContractViolationError
 from src.domain.task_source import TaskSource
 from src.usecases.interfaces import TaskQueue
@@ -13,7 +11,7 @@ class ImportTasks:
         """
         self.repository = repository
 
-    def execute(self, source: Any) -> int:
+    def execute(self, source: TaskSource) -> int:
         """
         Выполнить импорт задач из указанного источника
         :param source: Объект источника задач
@@ -23,8 +21,9 @@ class ImportTasks:
         if not isinstance(source, TaskSource):
             raise ContractViolationError(source_obj=source)
 
-        new_tasks = source.get_tasks()
-        for task in new_tasks:
+        count = 0
+        for task in source.get_tasks():
             self.repository.add_task(task)
+            count += 1
 
-        return len(new_tasks)
+        return count

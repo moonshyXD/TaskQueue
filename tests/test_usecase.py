@@ -3,7 +3,12 @@ from unittest.mock import mock_open, patch
 
 import pytest
 
-from src.domain.errors import ContractViolationError, TaskNotFoundError
+from src.domain.errors import (
+    ContractViolationError,
+    TaskCreationError,
+    TaskNotFoundError,
+)
+from src.domain.status import TaskStatus
 from src.domain.task import Task
 from src.repository.queue import TaskQueueInMemory
 from src.repository.task_api import TaskAPI
@@ -64,11 +69,11 @@ class MockQueue:
 
 class TestTaskSources:
     def test_task_api(self) -> None:
-        assert len(TaskAPI().get_tasks()) == 2
+        assert len(list(TaskAPI().get_tasks())) == 2
 
     def test_task_random(self) -> None:
         random_source = TaskRandom(tasks_count=3)
-        tasks = random_source.get_tasks()
+        tasks = list(random_source.get_tasks())
         assert len(tasks) == 3
         assert 1 <= tasks[0].priority <= 5
         assert tasks[0].description in TaskRandom.DESCRIPTIONS
@@ -80,25 +85,25 @@ class TestTaskSources:
             '1 {"description": "Test", "priority": 1, "status": 0, "id": 1}\n'
         )
         with patch("builtins.open", mock_open(read_data=file_content)):
-            tasks = TaskFile("dummy_path.txt").get_tasks()
+            tasks = list(TaskFile("dummy_path.txt").get_tasks())
             assert len(tasks) == 1
             assert tasks[0].id == 1
             assert tasks[0].description == "Test"
             assert tasks[0].priority == 1
-            assert tasks[0].status == 0
+            assert tasks[0].status == TaskStatus.WAITING
 
 
 class TestImportTasks:
     def test_import_success(self) -> None:
         queue = MockQueue()
-        importer = ImportTasks(queue)  # type: ignore[arg-type]
+        importer = ImportTasks(queue)
         count = importer.execute(TaskAPI())
         assert count == 2
         assert len(queue.tasks) == 2
 
     def test_import_fail_contract_violation(self) -> None:
         with pytest.raises(ContractViolationError):
-            ImportTasks(MockQueue()).execute(123)  # type: ignore[arg-type]
+            ImportTasks(MockQueue()).execute(123)
 
 
 @pytest.fixture
@@ -190,6 +195,9 @@ class TestQueueServiceErrors:
             def add_task(self, task: Task) -> Task | None:
                 return None
 
-        service = QueueService(repository=FailingMockQueue())  # type: ignore[arg-type]
-        with pytest.raises(ValueError, match="Не получилось добавить задачу"):
+        service = QueueService(repository=FailingMockQueue())
+        with pytest.raises(
+            TaskCreationError,
+            match="Не удалось сохранить задачу в репозитории",
+        ):
             service.add_task(Task(description="T1", priority=1, status=0))

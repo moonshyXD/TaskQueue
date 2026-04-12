@@ -50,3 +50,38 @@ class ContractViolationError(TaskHandlerError):
         )
 
         super().__init__(message)
+
+
+class InvalidStatusError(TaskHandlerError):
+    def __init__(self, value: Any):
+        """
+        Инициализировать ошибку некорректного статуса
+        :param value: Переданное значение статуса
+        """
+        self.value = value
+        message = f"Некорректный статус: {self.value}"
+        super().__init__(message)
+
+
+class TaskParsingError(TaskHandlerError):
+    def __init__(self, line_num: int, reason: str):
+        """
+        Инициализировать ошибку парсинга задачи
+        :param line_num: Номер строки с ошибкой
+        :param reason: Причина ошибки
+        """
+        self.line_num = line_num
+        self.reason = reason
+        message = f"Ошибка парсинга на строке {self.line_num}: {self.reason}"
+        super().__init__(message)
+
+
+class TaskCreationError(TaskHandlerError):
+    def __init__(self, reason: str):
+        """
+        Инициализировать ошибку создания задачи
+        :param reason: Причина ошибки
+        """
+        self.reason = reason
+        message = f"Ошибка создания задачи: {self.reason}"
+        super().__init__(message)

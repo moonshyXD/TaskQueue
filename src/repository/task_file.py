@@ -1,5 +1,8 @@
 import json
+import logging
+from typing import Iterator
 
+from src.domain.errors import TaskParsingError
 from src.domain.task import Task
 
 
@@ -11,29 +14,29 @@ class TaskFile:
         """
         self.file_path = file_path
 
-    def get_tasks(self) -> list[Task]:
+    def get_tasks(self) -> Iterator[Task]:
         """
-        Прочитать и распарсить задачи из файла
-        :return: Список задач, загруженных из файла
+        Прочитать и распарсить задачи из файла построчно
+        :yield: Объект Task
         """
         file_path = self.file_path
         with open(file_path, "r", encoding="utf-8") as file:
-            lines = file.readlines()
+            for line_num, line in enumerate(file, 1):
+                try:
+                    line = line.strip()
+                    if not line:
+                        continue
 
-        tasks = []
-        for line in lines:
-            try:
-                _, payload_str = line.split(" ", 1)
-                payload = json.loads(payload_str)
+                    _, payload_str = line.split(" ", 1)
+                    payload = json.loads(payload_str)
 
-                task = Task(
-                    description=payload["description"],
-                    priority=payload["priority"],
-                    status=payload["status"],
-                    task_id=payload.get("id"),
-                )
-                tasks.append(task)
-            except (ValueError, KeyError, json.JSONDecodeError):
-                continue
-
-        return tasks
+                    yield Task(
+                        description=payload["description"],
+                        priority=payload["priority"],
+                        status=payload["status"],
+                        task_id=payload.get("id"),
+                    )
+                except (ValueError, KeyError, json.JSONDecodeError) as e:
+                    error = TaskParsingError(line_num=line_num, reason=str(e))
+                    logging.warning(f"Ошибка в файле {file_path}: {error}")
+                    continue

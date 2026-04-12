@@ -10,7 +10,7 @@ run:
 lint:
 	ruff format .
 	ruff check --fix
-	mypy .
+	mypy src/
 
 testcover:
 	pytest --cov --cov-report=term-missing

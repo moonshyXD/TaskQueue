@@ -2,7 +2,8 @@ from datetime import timedelta
 
 import pytest
 
-from src.domain.errors import InputValidationError
+from src.domain.errors import InputValidationError, InvalidStatusError
+from src.domain.status import TaskStatus
 from src.domain.task import Task
 
 
@@ -16,7 +17,7 @@ class TestTaskCreation:
         assert sample_task.id == 100
         assert sample_task.description == "Valid task"
         assert sample_task.priority == 3
-        assert sample_task.status == 0
+        assert sample_task.status == TaskStatus.WAITING
         assert isinstance(sample_task.task_duration, timedelta)
 
     def test_empty_description(self) -> None:
@@ -25,7 +26,7 @@ class TestTaskCreation:
 
     def test_invalid_description_type(self) -> None:
         with pytest.raises(InputValidationError):
-            Task(description=123, priority=3, status=0)  # type: ignore[arg-type]
+            Task(description=123, priority=3, status=0)
 
     def test_long_description_shortening(self) -> None:
         long_desc = "GOOOOOOOSEEEEEEEEEE"
@@ -37,7 +38,7 @@ class TestTaskCreation:
 class TestTaskPriority:
     def test_invalid_priority_type(self) -> None:
         with pytest.raises(InputValidationError):
-            Task(description="Task", priority="high", status=0)  # type: ignore[arg-type]
+            Task(description="Task", priority="high", status=0)
 
     def test_priority_too_low(self) -> None:
         with pytest.raises(InputValidationError):
@@ -51,22 +52,22 @@ class TestTaskPriority:
 class TestTaskStatus:
     def test_valid_status(self) -> None:
         task = Task(description="Task", priority=3, status=1)
-        assert task.status == 1
+        assert task.status == TaskStatus.IN_PROGRESS
 
     def test_status_too_high(self) -> None:
-        with pytest.raises(ValueError):
+        with pytest.raises(InvalidStatusError):
             Task(description="Task", priority=3, status=2)
 
     def test_negative_status(self) -> None:
-        with pytest.raises(ValueError):
+        with pytest.raises(InvalidStatusError):
             Task(description="Task", priority=3, status=-1)
 
     def test_set_valid_status(self, sample_task: Task) -> None:
         sample_task.status = 0
-        assert sample_task.status == 0
+        assert sample_task.status == TaskStatus.WAITING
 
     def test_set_invalid_status(self, sample_task: Task) -> None:
-        with pytest.raises(ValueError):
+        with pytest.raises(InvalidStatusError):
             sample_task.status = 5
 
 
@@ -115,7 +116,7 @@ class TestTaskMagicMethods:
     def test_add_with_unsupported_type(self) -> None:
         task1 = Task(description="T1", priority=2, status=0)
         with pytest.raises(TypeError):
-            task1 + "string"  # type: ignore[operator]
+            task1 + "string"
 
     def test_radd_with_sum(self) -> None:
         task1 = Task(description="T1", priority=2, status=0)

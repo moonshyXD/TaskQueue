@@ -1,25 +1,22 @@
+from typing import Iterator
+
+from src.domain.status import TaskStatus
 from src.domain.task import Task
 
 
 class TaskAPI:
-    def get_tasks(self) -> list[Task]:
+    def get_tasks(self) -> Iterator[Task]:
         """
-        Получить список задач из API-заглушки
-        :return: Список сгенерированных задач
+        Получить задачи из API-заглушки
+        :yield: Сгенерированная задача
         """
-        description1 = "Эта первая задача для гуся"
-        priority1 = 1
-        status1 = 1
-        task1 = Task(
-            description=description1, priority=priority1, status=status1
+        yield Task(
+            description="Эта первая задача для гуся",
+            priority=1,
+            status=TaskStatus.IN_PROGRESS,
         )
-
-        description2 = "Эта вторая задача для гуся"
-        priority2 = 5
-        status2 = 0
-        task2 = Task(
-            description=description2, priority=priority2, status=status2
+        yield Task(
+            description="Эта вторая задача для гуся",
+            priority=5,
+            status=TaskStatus.WAITING,
         )
-
-        tasks = [task1, task2]
-        return tasks
