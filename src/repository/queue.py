@@ -3,6 +3,23 @@ from typing import Iterator
 from src.domain.task import Task
 
 
+class TaskQueueIterator:
+    """Итератор для очереди задач"""
+    def __init__(self, tasks: list[Task]) -> None:
+        self._tasks = tasks
+        self._index = 0
+
+    def __iter__(self) -> Iterator[Task]:
+        return self
+
+    def __next__(self) -> Task:
+        if self._index >= len(self._tasks):
+            raise StopIteration
+        task = self._tasks[self._index]
+        self._index += 1
+        return task
+
+
 class TaskQueueInMemory:
     def __init__(self) -> None:
         """
@@ -90,7 +107,7 @@ class TaskQueueInMemory:
         Реализация протокола итерации
         :return: Итератор по задачам
         """
-        return iter(self._tasks)
+        return TaskQueueIterator(self._tasks)
 
     def __len__(self) -> int:
         """

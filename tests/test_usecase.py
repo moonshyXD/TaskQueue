@@ -18,6 +18,22 @@ from src.usecases.import_tasks import ImportTasks
 from src.usecases.queue import QueueService
 
 
+class MockQueueIterator:
+    def __init__(self, tasks: list[Task]) -> None:
+        self._tasks = tasks
+        self._index = 0
+
+    def __iter__(self) -> Iterator[Task]:
+        return self
+
+    def __next__(self) -> Task:
+        if self._index >= len(self._tasks):
+            raise StopIteration
+        task = self._tasks[self._index]
+        self._index += 1
+        return task
+
+
 class MockQueue:
     def __init__(self) -> None:
         self.tasks: list[Task] = []
@@ -64,7 +80,7 @@ class MockQueue:
         return (t for t in self.tasks if t.is_ready_for_execution)
 
     def __iter__(self) -> Iterator[Task]:
-        return iter(self.tasks)
+        return MockQueueIterator(self.tasks)
 
 
 class TestTaskSources:
